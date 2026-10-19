@@ -1,0 +1,53 @@
+---
+/**
+ * The wall of the home: every library as a brick, one row per layer of the dependency graph, the
+ * foundation at the bottom. Each brick links to its library and carries, as data, every library it
+ * stands on and every library that stands on it, directly or not, which the script reads to light them.
+ *
+ * The rows are a true picture of the graph rather than a decoration: a brick never sits below anything it
+ * depends on. With no script the wall is a set of links.
+ */
+import { type Library, reach } from '../content'
+import { TEXT } from '../content/site'
+
+interface Props {
+  libraries: readonly Library[]
+}
+const { libraries } = Astro.props
+const byName = new Map(libraries.map((library) => [library.data.name, library.data]))
+const dependencies = (name: string) => byName.get(name)?.dependsOn ?? []
+const consumers = (name: string) => byName.get(name)?.usedBy ?? []
+const height = Math.max(...libraries.map((library) => library.data.layer)) + 1
+const rows = Array.from({ length: height }, (_, layer) =>
+  libraries.filter((library) => library.data.layer === layer).sort((a, b) => a.data.name.localeCompare(b.data.name)),
+)
+---
+
+<div class="tb-wall-frame">
+  <div class="tb-wall" data-wall>
+    {
+      rows.map((row, layer) => (
+        <div class="tb-wall__row">
+          {row.map((library, index) => (
+            <a
+              href={`/${library.data.name}/`}
+              class="tb-brick"
+              style={`--row:${layer};--i:${index}`}
+              data-brick={library.data.name}
+              data-dependencies={reach(library.data.name, dependencies).join(' ')}
+              data-consumers={reach(library.data.name, consumers).join(' ')}
+              title={library.data.description}
+            >
+              {library.data.name}
+            </a>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+  <p class="tb-wall__legend" aria-hidden="true">
+    <span style="--swatch:var(--color-tb-action)">{TEXT.home.chosen}</span>
+    <span style="--swatch:var(--color-brick-dependency)">{TEXT.home.dependency}</span>
+    <span class="is-consumer" style="--swatch:var(--color-surface)">{TEXT.home.consumer}</span>
+  </p>
+</div>

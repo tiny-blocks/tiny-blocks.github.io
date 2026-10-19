@@ -1,0 +1,135 @@
+---
+/**
+ * The home: the name of Tiny Blocks beside an application built from its libraries, the map of how the
+ * libraries stand on each other, then the catalog grouped by area and the facts every library holds to.
+ */
+import { libraries as allLibraries } from '../content'
+import { AREA_TEXT, AREAS, repositoryUrl } from '../content/catalog'
+import { MAIN_ID, SITE, TEXT } from '../content/site'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from './Icon.astro'
+import HeroCompose from './HeroCompose.astro'
+import Wall from './Wall.astro'
+
+const libraries = await allLibraries()
+const origin = Astro.site ?? Astro.url.origin
+---
+
+<BaseLayout
+  path="/"
+  structuredData={{
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: SITE.name,
+        url: new URL('/', origin).href,
+        logo: new URL('/logo.png', origin).href,
+        sameAs: [SITE.github],
+      },
+      {
+        '@type': 'WebSite',
+        name: SITE.name,
+        description: SITE.meta.description,
+        url: new URL('/', origin).href,
+        inLanguage: 'en',
+      },
+      {
+        '@type': 'ItemList',
+        name: TEXT.nav.libraries,
+        itemListElement: libraries.map((library, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: new URL(`/${library.data.name}/`, origin).href,
+          item: {
+            '@type': 'SoftwareSourceCode',
+            name: `tiny-blocks/${library.data.name}`,
+            description: library.data.description,
+            codeRepository: repositoryUrl(library.data.name),
+            programmingLanguage: 'PHP',
+          },
+        })),
+      },
+    ],
+  }}
+>
+  <main id={MAIN_ID}>
+    <section class="tb-hero" aria-labelledby="hero-title">
+      <div class="tb-wrap tb-hero__inner">
+        <div class="tb-hero__words">
+          <div>
+            <h1 id="hero-title" class="tb-hero__title">{SITE.name}</h1>
+            <p class="tb-hero__lede">{TEXT.home.lede}</p>
+          </div>
+          <div class="tb-hero__actions">
+            <a href="#libraries" class="tb-button tb-button--primary">
+              {TEXT.home.browse}
+              <Icon name="arrow-right" size={18} />
+            </a>
+            <a href={SITE.github} target="_blank" rel="noopener noreferrer" class="tb-button tb-button--ghost">
+              {TEXT.home.github}
+              <Icon name="external" size={16} />
+            </a>
+          </div>
+        </div>
+        <HeroCompose />
+      </div>
+    </section>
+
+    <section class="tb-wrap tb-graph" aria-labelledby="graph-title">
+      <header class="tb-group__head">
+        <h2 id="graph-title" class="tb-group__title">{TEXT.home.graphTitle}</h2>
+        <p class="tb-group__lede">{TEXT.home.graphLede}</p>
+      </header>
+      <Wall libraries={libraries} />
+    </section>
+
+    <div class="tb-wrap tb-catalog" id="libraries">
+      {
+        AREAS.map((area) => (
+          <section aria-labelledby={`area-${area}`}>
+            <header class="tb-group__head">
+              <h2 id={`area-${area}`} class="tb-group__title">
+                {AREA_TEXT[area].title}
+              </h2>
+              <p class="tb-group__lede">{AREA_TEXT[area].lede}</p>
+            </header>
+            <ul class="tb-grid">
+              {libraries
+                .filter((library) => library.data.area === area)
+                .map((library) => (
+                  <li>
+                    <a href={`/${library.data.name}/`} class="tb-card">
+                      <span class="tb-card__name">{library.data.name}</span>
+                      <span class="tb-card__summary">{library.data.description}</span>
+                      <span class="tb-card__foot">
+                        <span class="tb-chip">{library.data.version}</span>
+                        {library.data.usedBy.length > 0 && (
+                          <span class="tb-chip">{TEXT.library.usedByCount(library.data.usedBy.length)}</span>
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        ))
+      }
+
+      <ul class="tb-promise">
+        {
+          TEXT.home.promise.map((item) => (
+            <li>
+              <strong>{item.title}</strong>
+              <span>{item.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import '../scripts/wall.ts'
+  import '../scripts/compose.ts'
+</script>

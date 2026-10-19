@@ -1,0 +1,15 @@
+---
+/**
+ * The lockup of the site: the Tiny Blocks logo, two studded bricks, beside the wordmark. The wordmark is
+ * text in currentColor, so the bar decides its color per theme.
+ */
+interface Props {
+  label: string
+}
+const { label } = Astro.props
+---
+
+<span class="tb-brand">
+  <img src="/logo.svg" alt="" width="34" height="34" />
+  <span class="tb-brand__word">{label}</span>
+</span>

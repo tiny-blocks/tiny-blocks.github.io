@@ -1,0 +1,1615 @@
+/*
+ * The theme of the site. Shared primitives on @theme, adaptive roles that swap between light and dark,
+ * and component classes written against those roles.
+ *
+ * The look comes from the brand: the bricks of the logo, drawn in a slate indigo outline over lavender
+ * fills. Headings are set in Bricolage Grotesque, the text in IBM Plex Sans and the code in JetBrains
+ * Mono, the face of the IDE most PHP is written in. Each library is a brick, and the home stacks them the
+ * way they stand on each other.
+ *
+ * Both light and dark are first-class. An explicit choice from the theme control lands as data-theme on
+ * the root (persisted, resolved before paint by the inline head script in BaseLayout), and with no choice
+ * the theme follows prefers-color-scheme. Every pair of text and ground holds 4.5:1 in both modes, and the
+ * ratio of each one is written beside its value.
+ */
+
+@import 'tailwindcss';
+
+/* The three faces of the site, self-hosted, latin subset only, all variable. */
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../assets/fonts/bricolage-grotesque-latin-variable.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('../assets/fonts/ibm-plex-sans-latin-variable.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../assets/fonts/jetbrains-mono-latin-variable.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  /* The values of the palette that never adapt. The brand indigo is the outline of the logo and the mark
+     of the page; the action indigo is the ground of the one action, white on it at 7.2:1. */
+  --color-tb-brand: #4b5a96;
+  --color-tb-action: #3d4cb5;
+  --color-tb-action-hover: #2f3c96;
+
+  /* The bricks of the wall, and the two colors a lit brick takes: what the chosen library stands on, and
+     what stands on it. The ink on each holds 8:1 or more. */
+  --color-brick-ink-on-dependency: #10153a;
+  --color-brick-dependency: #8e9ae6;
+
+  /* Theme-adaptive roles. Values swap with the theme below. */
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-hair: var(--hair);
+  --color-accent: var(--accent);
+  --color-selection: var(--selection);
+  --color-selection-ink: var(--selection-ink);
+  --color-brick: var(--brick);
+  --color-brick-ink: var(--brick-ink);
+  --color-brick-edge: var(--brick-edge);
+
+  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --font-weight-regular: 400;
+  --font-weight-demibold: 600;
+  --font-weight-bold: 700;
+
+  --text-caption: 0.75rem;
+  --text-small: 0.875rem;
+  --text-body: 1rem;
+  --text-h4: 1.125rem;
+  --text-h3: 1.5rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 2px rgba(22, 26, 51, 0.06);
+  --shadow-raised: 0 12px 32px rgba(22, 26, 51, 0.16);
+  --shadow-cta: 0 10px 28px rgba(61, 76, 181, 0.3);
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-micro: 120ms;
+  --duration-base: 220ms;
+}
+
+:root {
+  --page: #f5f6fc;
+  --surface: #ffffff;
+  --surface-strong: #eceffa;
+  --ink: #161a33; /* 15.8:1 on the page */
+  --ink-muted: #4a5072; /* 7.3:1 on the page, 6.8:1 on the strong surface */
+  --hair: #dde1f2;
+  --accent: #3846a8; /* 7.5:1 on the page */
+  --selection: #e6eaff;
+  --selection-ink: #28337a; /* 9.5:1 on the selection */
+  --brick: #d6dcff;
+  --brick-ink: #1f2550; /* 10.8:1 on the brick */
+  --brick-edge: #4b5a96;
+  /* The bricks of the hero, as the logo colors them, and the baseplate they stand on. */
+  --lego-front: #c7cfff;
+  --lego-top: #e2e7ff;
+  --lego-side: #8f9be0;
+  --lego-edge: #34407e;
+  --lego-ink: #161c48; /* 10.7:1 on the front */
+  --lego-plate: #e3e7f6;
+  --lego-plate-side: #c3cae8;
+  --lego-plate-edge: #a3acd6;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --page: #0d1020;
+  --surface: #151a30;
+  --surface-strong: #1d2340;
+  --ink: #eef0fb; /* 16.6:1 on the page */
+  --ink-muted: #aab0cf; /* 8.8:1 on the page, 7.2:1 on the strong surface */
+  --hair: #2a3152;
+  --accent: #a9b5ff; /* 8.8:1 on the surface */
+  --selection: #252d55;
+  --selection-ink: #d4dbff; /* 9.7:1 on the selection */
+  --brick: #283063;
+  --brick-ink: #e6eaff; /* 10.4:1 on the brick */
+  --brick-edge: #8e9ad8;
+  --lego-front: #3b4690;
+  --lego-top: #5361b8;
+  --lego-side: #28306b;
+  --lego-edge: #b6c1ff;
+  --lego-ink: #ffffff; /* 8.5:1 on the front */
+  --lego-plate: #1f2645;
+  --lego-plate-side: #161b35;
+  --lego-plate-edge: #3a4475;
+  color-scheme: dark;
+}
+
+/* No explicit choice (no JavaScript, or before the inline script runs): follow the system. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    --page: #0d1020;
+    --surface: #151a30;
+    --surface-strong: #1d2340;
+    --ink: #eef0fb;
+    --ink-muted: #aab0cf;
+    --hair: #2a3152;
+    --accent: #a9b5ff;
+    --selection: #252d55;
+    --selection-ink: #d4dbff;
+    --brick: #283063;
+    --brick-ink: #e6eaff;
+    --brick-edge: #8e9ad8;
+    --lego-front: #3b4690;
+    --lego-top: #5361b8;
+    --lego-side: #28306b;
+    --lego-edge: #b6c1ff;
+    --lego-ink: #ffffff; /* 8.5:1 on the front */
+    --lego-plate: #1f2645;
+    --lego-plate-side: #161b35;
+    --lego-plate-edge: #3a4475;
+    color-scheme: dark;
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.5;
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    scroll-padding-top: 1.5rem;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-page);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-tb-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--color-tb-brand);
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: 0.75rem;
+    z-index: 60;
+    transform: translateY(-5rem);
+    border-radius: var(--radius-md);
+    background: var(--color-tb-brand);
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    color: #ffffff;
+    font-weight: var(--font-weight-demibold);
+    box-shadow: var(--shadow-raised);
+    transition: transform var(--duration-micro) var(--ease-out-soft);
+  }
+  .skip-link:focus-visible {
+    transform: none;
+  }
+
+  .tb-wrap {
+    width: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .tb-wrap {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .tb-wrap {
+      padding-inline: 2.5rem;
+    }
+  }
+}
+
+/* ------------------------------------ the bar ------------------------------------ */
+.tb-bar {
+  border-block-end: 1px solid var(--color-hair);
+  background: var(--color-surface);
+}
+.tb-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+}
+.tb-bar__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* Theme control: a pill holding the two choices, with the theme in force lit. Hidden when scripting is
+   off, since the page then follows the system theme with no control to operate. */
+.theme-pill {
+  display: inline-flex;
+  gap: 0.125rem;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-hair);
+  background: var(--color-page);
+}
+.theme-pill__choice {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+/* The 44 square a finger aims at, reaching past the paint instead of growing it. */
+.theme-pill__choice::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  transform: translate(-50%, -50%);
+}
+.theme-pill__choice:hover {
+  color: var(--color-ink);
+}
+.theme-pill__choice[data-active] {
+  color: var(--color-selection-ink);
+  background: var(--color-selection);
+}
+@media (scripting: none) {
+  .theme-pill {
+    display: none;
+  }
+}
+
+/* ------------------------------------- notes -------------------------------------- */
+/* The Markdown of a topic, drawn inside its card. Only the elements the notes use are styled. */
+.tb-md {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1rem;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+.tb-md > * {
+  margin: 0;
+}
+.tb-md h3 {
+  margin-top: 0.75rem;
+  font-size: var(--text-h4);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+}
+.tb-md a {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-demibold);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.tb-md strong {
+  font-weight: var(--font-weight-bold);
+}
+.tb-md ul,
+.tb-md ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-inline-start: 1.5rem;
+}
+.tb-md ul {
+  list-style: none;
+  padding-inline-start: 0;
+}
+.tb-md ul > li {
+  position: relative;
+  padding-inline-start: 1.25rem;
+}
+.tb-md ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0.2rem;
+  top: 0.68em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 2px;
+  background: var(--color-tb-brand);
+  transform: rotate(45deg);
+}
+.tb-md ol {
+  list-style: decimal;
+}
+.tb-md ol > li::marker {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
+}
+.tb-md li > * + * {
+  margin-top: 0.5rem;
+}
+.tb-md blockquote {
+  padding: 0.875rem 1.125rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-tb-brand) 35%, var(--color-hair));
+  border-inline-start: 3px solid var(--color-tb-brand);
+  background: var(--color-selection);
+}
+.tb-md table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-hair);
+  font-size: 0.9375rem;
+}
+.tb-md th,
+.tb-md td {
+  padding: 0.625rem 0.875rem;
+  text-align: left;
+  vertical-align: top;
+}
+.tb-md thead th {
+  background: var(--color-surface-strong);
+  font-weight: var(--font-weight-bold);
+}
+.tb-md tbody tr {
+  border-block-start: 1px solid var(--color-hair);
+}
+/* Code is shown as it is typed: PHP reads `->` and `=>` as two characters, not as one arrow. */
+code,
+.astro-code {
+  font-variant-ligatures: none;
+}
+code {
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-strong);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+/* Code colored by Shiki in both themes at build time. Each token carries the color of each theme, and
+   the one in force is picked here, the same way the roles of the page are. */
+.astro-code {
+  overflow-x: auto;
+  padding: 1rem 1.125rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-hair);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 4;
+}
+.astro-code,
+.astro-code span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+.astro-code code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) .astro-code,
+  :root:not([data-theme='light']):not([data-theme='dark']) .astro-code span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
+}
+
+.tb-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.tb-block__title {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* ------------------------------------- footer ------------------------------------- */
+.tb-footer {
+  border-block-start: 1px solid var(--color-hair);
+  background: var(--color-surface);
+}
+.tb-footer__inner {
+  display: flex;
+  justify-content: center;
+  padding-block: 1.25rem;
+}
+.tb-footer__github {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-muted);
+}
+.tb-footer__github:hover {
+  background: var(--color-surface-strong);
+  color: var(--color-ink);
+}
+
+/* ------------------------------------- to top ------------------------------------- */
+.tb-to-top {
+  display: none;
+}
+:root[data-to-top='on'] .tb-to-top {
+  position: fixed;
+  z-index: 40;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  inset-inline-end: max(1rem, env(safe-area-inset-right));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-hair);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-raised);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition:
+    opacity var(--duration-micro) ease,
+    transform var(--duration-micro) var(--ease-out-soft),
+    visibility 0s linear var(--duration-micro);
+}
+:root[data-to-top='on'] .tb-to-top.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity var(--duration-micro) ease,
+    transform var(--duration-micro) var(--ease-out-soft);
+}
+:root[data-to-top='on'] .tb-to-top:hover {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------ not found ----------------------------------- */
+.tb-lost {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  padding-block: 6rem;
+}
+.tb-lost__code {
+  font-size: 5rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+/* --------------------------------- bar tools ---------------------------------- */
+.tb-bar__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.tb-bar__tool {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-ink-muted);
+}
+.tb-bar__tool:hover {
+  background: var(--color-surface-strong);
+  color: var(--color-ink);
+}
+
+/* ------------------------------------ search ------------------------------------ */
+.tb-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.tb-search__field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0 1.125rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-hair);
+  background: var(--color-surface);
+  color: var(--color-ink-muted);
+  box-shadow: var(--shadow-card);
+}
+.tb-search__field:focus-within {
+  border-color: var(--color-tb-brand);
+}
+.tb-search__field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  min-height: 2.75rem;
+  font-size: 1.125rem;
+  outline: none;
+}
+.tb-search__status {
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+.tb-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-hair);
+  background: var(--color-surface);
+}
+.tb-result__page {
+  font-size: var(--text-h4);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.tb-result__page:hover {
+  color: var(--color-accent);
+}
+.tb-result__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-result__sections a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md);
+  background: var(--color-page);
+  color: var(--color-ink-muted);
+  font-size: var(--text-small);
+  text-decoration: none;
+}
+.tb-result__sections a:hover {
+  color: var(--color-ink);
+}
+.tb-result__sections strong:not(:empty) {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+.tb-result mark {
+  border-radius: 2px;
+  background: var(--color-selection);
+  color: var(--color-selection-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+
+/* ------------------------------------ brand ------------------------------------ */
+.tb-home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+.tb-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.tb-brand__word {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+}
+@media (max-width: 24rem) {
+  .tb-brand__word {
+    display: none;
+  }
+}
+
+/* ------------------------------------ buttons ------------------------------------ */
+.tb-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-small);
+  font-weight: var(--font-weight-demibold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tb-button--primary {
+  background: var(--color-tb-action);
+  color: #ffffff;
+  box-shadow: var(--shadow-cta);
+}
+.tb-button--primary:hover {
+  background: var(--color-tb-action-hover);
+}
+.tb-button--ghost {
+  border: 1px solid var(--color-hair);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.tb-button--ghost:hover {
+  border-color: var(--color-tb-brand);
+}
+
+/* The command a library is installed with, and the control that copies it. The control is drawn only
+   once its script runs, because it does nothing without one. */
+.tb-install {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-hair);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+.tb-install code {
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0;
+  background: none;
+  font-size: inherit;
+  white-space: nowrap;
+}
+.tb-install code::before {
+  content: '$ ';
+  color: var(--color-ink-muted);
+}
+.tb-copy {
+  display: none;
+  flex: none;
+  min-width: 4.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-selection);
+  color: var(--color-selection-ink);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-demibold);
+  cursor: pointer;
+}
+:root[data-copy='on'] .tb-copy {
+  display: inline-block;
+}
+
+/* ------------------------------------- hero -------------------------------------- */
+/* The home opens on the wall: every library as a brick, stacked by what it stands on. The ground is the
+   page itself with the studs of the bricks printed faintly on it. */
+.tb-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-block-end: 1px solid var(--color-hair);
+}
+.tb-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-tb-brand) 16%, transparent) 2px, transparent 2.5px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+.tb-hero__inner {
+  display: grid;
+  gap: 2.5rem;
+  padding-block: 3rem 3.5rem;
+}
+/* On a wide screen the words and the picture are one block of the same height: the title level with the
+   top of the picture and the actions level with its foot. */
+@media (min-width: 60rem) {
+  .tb-hero__inner {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+    gap: 3rem;
+    align-content: center;
+    align-items: stretch;
+    min-height: calc(100svh - 4.125rem);
+    padding-block: 3rem;
+  }
+  .tb-hero__words {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .tb-hero__words .tb-hero__actions {
+    align-self: flex-start;
+    margin-top: 1.5rem;
+  }
+}
+.tb-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 1.5rem + 5vw, 5rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+.tb-hero__lede {
+  margin-top: 1.25rem;
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+  text-wrap: pretty;
+}
+/* The two actions share one width, the width of the longer label, and never stretch to fill the row. */
+.tb-hero__actions {
+  display: inline-grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+@media (max-width: 20rem) {
+  .tb-hero__actions {
+    grid-auto-flow: row;
+  }
+}
+
+/* The picture beside the words: an editor with the two files of the application, the domain and the
+   endpoint, and beside it the square baseplate with the bricks of their libraries. Nothing overlaps. */
+.tb-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+/* One editor holding both files as tabs. Both panes share one cell, so the editor keeps the height of the
+   longer file, and the tab in force follows the file being typed. */
+.tb-compose__editor {
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: #151a30;
+  color: #e6eaff;
+  font-family: var(--font-mono);
+  line-height: 1.65;
+  box-shadow: 0 20px 40px rgba(13, 16, 32, 0.22);
+}
+.tb-compose__tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem 0;
+  border-bottom: 1px solid #232a4a;
+  font-size: 0.75rem;
+}
+.tb-compose__tab {
+  padding: 0.375rem 0.75rem 0.5rem;
+  border-radius: 0.375rem 0.375rem 0 0;
+  color: #8e9ad8;
+}
+.tb-compose__tab.is-first {
+  background: #1d2340;
+  color: #e6eaff;
+  box-shadow: inset 0 2px 0 #8e9ae6;
+}
+.tb-compose__panes {
+  display: grid;
+}
+.tb-compose__pane {
+  grid-area: 1 / 1;
+  margin: 0;
+  padding: 0.75rem 1rem 0.875rem;
+  overflow-x: auto;
+  font-family: inherit;
+  font-size: min(0.8rem, calc((100cqi - 2.5rem) / (var(--longest) * 0.62)));
+  font-variant-ligatures: none;
+}
+.tb-compose__pane.is-second {
+  visibility: hidden;
+}
+.tb-compose__editor .k {
+  color: #cfb3ff;
+}
+.tb-compose__editor .n {
+  color: #ff9ec7;
+}
+.tb-compose__use {
+  display: block;
+  white-space: nowrap;
+}
+/* A whole line is clipped and revealed as it is typed, its keyword together with its path. */
+.tb-compose__line {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.tb-compose__path {
+  color: #9be29b;
+}
+.tb-compose__caret {
+  display: inline-block;
+  width: 0.45rem;
+  height: 1em;
+  margin-inline-start: 1px;
+  vertical-align: -0.15em;
+  background: #e6eaff;
+  opacity: 0;
+}
+.tb-compose__lego {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 16px 24px rgba(22, 26, 51, 0.14));
+}
+.tb-compose__uses,
+.tb-compose__bricks {
+  display: block;
+  transition: opacity 500ms ease;
+}
+.tb-compose.is-clearing .tb-compose__uses,
+.tb-compose.is-clearing .tb-compose__bricks {
+  opacity: 0;
+}
+.tb-lego polygon,
+.tb-lego path,
+.tb-lego ellipse {
+  stroke: var(--lego-edge);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.tb-lego__front {
+  fill: var(--lego-front);
+}
+.tb-lego__top,
+.tb-lego__stud {
+  fill: var(--lego-top);
+}
+.tb-lego__side {
+  fill: var(--lego-side);
+}
+.tb-lego--plate polygon,
+.tb-lego--plate path,
+.tb-lego--plate ellipse {
+  stroke: var(--lego-plate-edge);
+  stroke-width: 1.2;
+}
+.tb-lego--plate .tb-lego__front,
+.tb-lego--plate .tb-lego__top,
+.tb-lego--plate .tb-lego__stud {
+  fill: var(--lego-plate);
+}
+.tb-lego--plate .tb-lego__side {
+  fill: var(--lego-plate-side);
+}
+.tb-lego__label {
+  fill: var(--lego-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tb-lego__plate-label {
+  fill: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* The map of the whole graph, under the hero. */
+.tb-graph {
+  padding-block: 3.5rem 1rem;
+}
+
+/* The wall. Each row is one layer of the graph, the foundation at the bottom, and each brick is a link to
+   its library. Hovering or focusing a brick lights what it stands on and what stands on it. */
+.tb-wall-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.tb-wall {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.875rem;
+  padding-top: 0.5rem;
+}
+
+.tb-wall__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.875rem 0.5rem;
+}
+.tb-brick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-brick-edge);
+  background: var(--color-brick);
+  color: var(--color-brick-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: var(--font-weight-demibold);
+  text-decoration: none;
+}
+/* The studs on top of a brick, as the logo draws them. Decorative. */
+.tb-brick::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0.75rem;
+  top: -0.5rem;
+  height: 0.5rem;
+  background-image: radial-gradient(ellipse 0.45rem 0.3rem at 50% 100%, var(--color-brick) 92%, transparent 100%);
+  background-size: 1.25rem 0.5rem;
+  background-repeat: space no-repeat;
+  filter: drop-shadow(0 -2px 0 var(--color-brick-edge));
+}
+.tb-wall[data-lit] .tb-brick {
+  opacity: 0.45;
+}
+.tb-wall[data-lit] .tb-brick[data-state] {
+  opacity: 1;
+}
+.tb-brick[data-state='chosen'] {
+  background: var(--color-tb-action);
+  color: #ffffff;
+}
+.tb-brick[data-state='chosen']::before {
+  background-image: radial-gradient(ellipse 0.45rem 0.3rem at 50% 100%, var(--color-tb-action) 92%, transparent 100%);
+}
+.tb-brick[data-state='dependency'] {
+  background: var(--color-brick-dependency);
+  color: var(--color-brick-ink-on-dependency);
+}
+:root[data-theme='dark'] .tb-brick[data-state='dependency'] {
+  background: #5361b8;
+  color: #ffffff;
+}
+:root[data-theme='dark'] .tb-brick[data-state='dependency']::before {
+  background-image: radial-gradient(ellipse 0.45rem 0.3rem at 50% 100%, #5361b8 92%, transparent 100%);
+}
+.tb-brick[data-state='dependency']::before {
+  background-image: radial-gradient(ellipse 0.45rem 0.3rem at 50% 100%, var(--color-brick-dependency) 92%, transparent 100%);
+}
+.tb-brick[data-state='consumer'] {
+  border-style: dashed;
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+.tb-brick[data-state='consumer']::before {
+  background-image: radial-gradient(ellipse 0.45rem 0.3rem at 50% 100%, var(--color-surface) 92%, transparent 100%);
+}
+.tb-wall__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.25rem;
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+.tb-wall__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.tb-wall__legend span.is-consumer::before {
+  border-style: dashed;
+}
+.tb-wall__legend span::before {
+  content: '';
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  border: 1.5px solid var(--color-brick-edge);
+  background: var(--swatch);
+}
+
+/* ----------------------------------- catalog ------------------------------------- */
+.tb-catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  padding-block: 3.5rem 5rem;
+}
+.tb-group__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+}
+.tb-group__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+}
+.tb-group__lede {
+  color: var(--color-ink-muted);
+}
+.tb-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-card {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.25rem;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-hair);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+}
+.tb-card:hover {
+  border-color: var(--color-tb-brand);
+}
+.tb-card__name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-h4);
+  font-weight: var(--font-weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Every card has the same height: the summary takes three lines whatever its length, and the full text
+   is on the page of the library. */
+.tb-card__summary {
+  display: -webkit-box;
+  flex: 1;
+  min-height: calc(1.55em * 3);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  font-size: var(--text-small);
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+.tb-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+.tb-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.55rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-hair);
+  background: var(--color-page);
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+a.tb-chip {
+  min-height: 2.75rem;
+  padding-inline: 0.875rem;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+a.tb-chip:hover {
+  border-color: var(--color-tb-brand);
+}
+
+/* The facts every library holds to, under the catalog, each marked by a small brick. */
+.tb-promise {
+  display: grid;
+  gap: 1.25rem 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  margin: 0;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-tb-brand);
+  padding: 0;
+  list-style: none;
+}
+.tb-promise li {
+  position: relative;
+  padding-inline-start: 1.5rem;
+}
+.tb-promise li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
+  width: 0.875rem;
+  height: 0.625rem;
+  border-radius: 2px;
+  border: 1.5px solid var(--lego-edge);
+  background: var(--lego-front);
+}
+.tb-promise strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-body);
+}
+.tb-promise span {
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+
+/* ----------------------------------- library ------------------------------------- */
+.tb-cover {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-block-end: 1px solid var(--color-hair);
+  background: var(--color-surface);
+}
+.tb-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-tb-brand) 14%, transparent) 2px, transparent 2.5px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to left, black, transparent 70%);
+}
+.tb-cover__inner {
+  display: grid;
+  gap: 1.75rem;
+  padding-block: 2rem 2.25rem;
+}
+.tb-cover__inner > * {
+  min-width: 0;
+}
+@media (min-width: 64rem) {
+  .tb-cover__inner {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    align-items: start;
+    gap: 3rem;
+    padding-block: 2.75rem 3rem;
+  }
+}
+.tb-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+/* A breadcrumb link keeps the size it is drawn at, and an invisible layer centred on it gives the 44
+   square a finger aims at, reaching past the paint instead of growing it. */
+.tb-crumbs a {
+  position: relative;
+  color: var(--color-ink-muted);
+}
+.tb-crumbs a::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 2.75rem);
+  height: 2.75rem;
+  transform: translate(-50%, -50%);
+}
+.tb-crumbs a:hover {
+  color: var(--color-ink);
+}
+.tb-cover__title {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.tb-cover__package {
+  margin-top: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-accent);
+}
+.tb-cover__lede {
+  margin-top: 1rem;
+  max-width: 46rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+.tb-cover .tb-install {
+  margin-top: 1.25rem;
+}
+.tb-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+.tb-facts strong {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-demibold);
+}
+.tb-facts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-demibold);
+  white-space: nowrap;
+}
+.tb-relations {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.125rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-hair);
+  background: var(--color-page);
+}
+.tb-relations h2 {
+  margin-bottom: 0.5rem;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.tb-relations ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-relations p {
+  font-size: var(--text-small);
+  color: var(--color-ink-muted);
+}
+
+/* The documentation: the index of the README beside it on a wide screen, folded above it on a narrow one. */
+.tb-docs {
+  display: grid;
+  gap: 2rem;
+  padding-block: 2.5rem 4rem;
+}
+@media (min-width: 64rem) {
+  .tb-docs {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 3rem;
+  }
+}
+.tb-toc {
+  font-size: var(--text-small);
+}
+@media (min-width: 64rem) {
+  .tb-toc {
+    position: sticky;
+    top: 1.5rem;
+    align-self: start;
+    max-height: calc(100dvh - 3rem);
+    overflow-y: auto;
+  }
+  .tb-toc summary {
+    pointer-events: none;
+    list-style: none;
+  }
+  .tb-toc summary::-webkit-details-marker {
+    display: none;
+  }
+}
+.tb-toc summary {
+  min-height: 2.75rem;
+  padding-block: 0.625rem;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+.tb-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-toc li a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.25rem 0 0.25rem 0.75rem;
+  border-inline-start: 2px solid var(--color-hair);
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  line-height: 1.35;
+}
+.tb-toc li a:hover {
+  color: var(--color-ink);
+}
+.tb-toc li a[aria-current] {
+  border-color: var(--color-tb-brand);
+  color: var(--color-ink);
+  font-weight: var(--font-weight-demibold);
+}
+.tb-toc li.is-sub a {
+  padding-inline-start: 1.5rem;
+  font-size: 0.8125rem;
+}
+.tb-article {
+  min-width: 0;
+}
+/* A long identifier or address in the running text breaks inside the column instead of widening it. */
+.tb-md {
+  overflow-wrap: break-word;
+}
+.tb-md :not(pre) > code {
+  overflow-wrap: anywhere;
+}
+.tb-article .tb-md {
+  max-width: 50rem;
+}
+.tb-md h2 {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-hair);
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  scroll-margin-top: 1.5rem;
+}
+.tb-md > h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.tb-md h3,
+.tb-md h4 {
+  scroll-margin-top: 1.5rem;
+}
+.tb-md h4 {
+  margin-top: 0.5rem;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+}
+.tb-md img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* The body of a page that is not a library, under its cover. */
+.tb-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-block: 2.5rem 4rem;
+}
+
+/* ------------------------------------- phone -------------------------------------- */
+@media (max-width: 40rem) {
+  .tb-compose {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tb-compose__lego {
+    justify-self: center;
+    width: min(100%, 22rem);
+  }
+  .astro-code {
+    padding: 0.875rem;
+    font-size: 0.8125rem;
+  }
+  .tb-md table {
+    font-size: 0.875rem;
+  }
+  .tb-md th,
+  .tb-md td {
+    padding: 0.5rem 0.75rem;
+  }
+  .tb-brick {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+  .tb-catalog {
+    gap: 2.75rem;
+    padding-block: 2.5rem 3.5rem;
+  }
+}
+
+/* -------------------------------------- motion ------------------------------------- */
+/* The one orchestrated moment of the site, on the home: each import is typed, turns green when complete,
+   and its brick drops onto the plate and settles with a small give, as a brick clicks onto its studs. The
+   timing of each step is set on it by the component. It moves only opacity, transform and the width of a
+   clipped line of text, and the picture is complete without it, so with reduced motion it simply stands. */
+@media (prefers-reduced-motion: no-preference) {
+  .tb-compose.is-playing .tb-compose__line {
+    animation: tb-type calc(var(--chars) * 22ms) steps(var(--chars)) var(--start) both;
+  }
+  .tb-compose.is-playing .tb-compose__path {
+    animation: tb-resolve 300ms ease var(--land) both;
+  }
+  .tb-compose.is-playing .tb-compose__caret {
+    animation: tb-caret calc(var(--chars) * 22ms + 80ms) steps(1) var(--start) forwards;
+  }
+  .tb-compose.is-playing .tb-compose__pane.is-first {
+    animation: tb-leave 1ms linear var(--switch) both;
+  }
+  .tb-compose.is-playing .tb-compose__pane.is-second {
+    animation: tb-enter 1ms linear var(--switch) both;
+  }
+  .tb-compose.is-playing .tb-compose__tab.is-first {
+    animation: tb-tab-off 1ms linear var(--switch) both;
+  }
+  .tb-compose.is-playing .tb-compose__tab.is-second {
+    animation: tb-tab-on 1ms linear var(--switch) both;
+  }
+  @keyframes tb-leave {
+    to {
+      visibility: hidden;
+    }
+  }
+  @keyframes tb-enter {
+    from {
+      visibility: hidden;
+    }
+    to {
+      visibility: visible;
+    }
+  }
+  @keyframes tb-tab-off {
+    to {
+      background: transparent;
+      color: #8e9ad8;
+      box-shadow: none;
+    }
+  }
+  @keyframes tb-tab-on {
+    from {
+      background: transparent;
+      color: #8e9ad8;
+      box-shadow: none;
+    }
+    to {
+      background: #1d2340;
+      color: #e6eaff;
+      box-shadow: inset 0 2px 0 #8e9ae6;
+    }
+  }
+  .tb-compose.is-playing .tb-lego--brick {
+    animation: tb-land 560ms cubic-bezier(0.34, 1.5, 0.64, 1) var(--land) both;
+  }
+  @keyframes tb-type {
+    from {
+      width: 0;
+    }
+    to {
+      width: calc(var(--chars) * 1ch);
+    }
+  }
+  @keyframes tb-resolve {
+    from {
+      color: #e6eaff;
+    }
+  }
+  @keyframes tb-caret {
+    0%,
+    99% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes tb-land {
+    0% {
+      opacity: 0;
+      transform: translateY(-70px);
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+  .tb-wall .tb-brick {
+    transition: opacity var(--duration-base) ease;
+  }
+}
+
+@media print {
+  .tb-bar,
+  .tb-toc,
+  .tb-copy,
+  .tb-to-top,
+  .tb-footer {
+    display: none !important;
+  }
+}

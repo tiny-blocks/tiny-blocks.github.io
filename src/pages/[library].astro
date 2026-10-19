@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from 'astro'
+import LibraryPage from '../components/LibraryPage.astro'
+import { libraries } from '../content'
+
+export const getStaticPaths = (async () =>
+  (await libraries()).map((library) => ({
+    params: { library: library.data.name },
+    props: { library },
+  }))) satisfies GetStaticPaths
+
+const { library } = Astro.props
+---
+
+<LibraryPage library={library} />

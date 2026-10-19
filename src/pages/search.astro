@@ -1,0 +1,63 @@
+---
+/**
+ * The search over the documentation of the libraries.
+ *
+ * The index is built by Pagefind after the site, from the library pages only. The page ships the form and
+ * an empty list, and the script fetches the index the first time the reader types, so no other page pays
+ * for it.
+ */
+import Icon from '../components/Icon.astro'
+import { MAIN_ID, TEXT } from '../content/site'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const labels = TEXT.search
+---
+
+<BaseLayout title={labels.title} description={labels.lede} path="/search/" noindex>
+  <main id={MAIN_ID}>
+    <div class="tb-cover">
+      <div class="tb-wrap tb-cover__inner">
+        <div>
+          <nav aria-label="You are here" class="tb-crumbs">
+            <a href="/">{TEXT.nav.home}</a>
+          </nav>
+          <h1 class="tb-cover__title">{labels.title}</h1>
+          <p class="tb-cover__lede">{labels.lede}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tb-wrap tb-main">
+      <form
+        class="tb-search"
+        role="search"
+        data-search
+        data-idle={labels.idle}
+        data-loading={labels.loading}
+        data-empty={labels.empty}
+        data-unavailable={labels.unavailable}
+        data-count={labels.count}
+      >
+        <label for="search-term" class="tb-block__title">{labels.label}</label>
+        <div class="tb-search__field">
+          <Icon name="search" size={20} />
+          <input
+            id="search-term"
+            name="q"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder={labels.placeholder}
+          />
+        </div>
+        <p class="tb-search__status" role="status" aria-live="polite" data-search-status>{labels.idle}</p>
+      </form>
+      <ol class="tb-results" data-search-results></ol>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import '../scripts/search.ts'
+</script>

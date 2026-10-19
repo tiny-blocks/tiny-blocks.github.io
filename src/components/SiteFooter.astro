@@ -1,0 +1,19 @@
+---
+import { SITE, TEXT } from '../content/site'
+import Icon from './Icon.astro'
+---
+
+<footer class="tb-footer">
+  <div class="tb-wrap tb-footer__inner">
+    <a
+      href={SITE.github}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="tb-footer__github"
+      aria-label={TEXT.nav.source}
+      title={TEXT.nav.source}
+    >
+      <Icon name="github" size={20} />
+    </a>
+  </div>
+</footer>

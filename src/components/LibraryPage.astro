@@ -1,0 +1,160 @@
+---
+/**
+ * One library: a cover with what it is and how to install it, beside what it stands on and what stands on
+ * it, then its documentation, which is its README, with the index of its headings alongside.
+ */
+import { render } from 'astro:content'
+import type { Library } from '../content'
+import { AREA_TEXT, packagistUrl, repositoryUrl } from '../content/catalog'
+import { MAIN_ID, TEXT } from '../content/site'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Icon from './Icon.astro'
+
+interface Props {
+  library: Library
+}
+const { library } = Astro.props
+const { data } = library
+const { Content, headings } = await render(library)
+const index = headings.filter((heading) => heading.depth === 2 || heading.depth === 3)
+const packageName = `tiny-blocks/${data.name}`
+const install = `composer require ${packageName}`
+const origin = Astro.site ?? Astro.url.origin
+const url = new URL(`/${data.name}/`, origin).href
+const released = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(data.released))
+const downloads = new Intl.NumberFormat('en').format(data.downloads.monthly)
+/** Search engines show about 160 characters, so a short summary is completed with what the library is. */
+const completed = `${data.description} ${TEXT.library.pitch}`
+const description = completed.length <= 165 ? completed : data.description
+const relations = [
+  { label: TEXT.library.dependsOn, names: data.dependsOn, none: TEXT.library.standalone },
+  { label: TEXT.library.usedBy, names: data.usedBy, none: TEXT.library.unused },
+  ...(data.testedWith.length > 0 ? [{ label: TEXT.library.testedWith, names: data.testedWith, none: '' }] : []),
+]
+---
+
+<BaseLayout
+  title={TEXT.library.headline(data.title)}
+  description={description}
+  path={`/${data.name}/`}
+  kind="article"
+  structuredData={{
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: TEXT.nav.home, item: new URL('/', origin).href },
+          { '@type': 'ListItem', position: 2, name: data.title, item: url },
+        ],
+      },
+      {
+        '@type': 'SoftwareSourceCode',
+        name: packageName,
+        description,
+        url,
+        codeRepository: repositoryUrl(data.name),
+        programmingLanguage: 'PHP',
+        runtimePlatform: `PHP ${data.php}`,
+        version: data.version,
+        license: `https://spdx.org/licenses/${data.license}.html`,
+      },
+    ],
+  }}
+>
+  <main id={MAIN_ID}>
+    <div class="tb-cover" data-pagefind-body>
+      <div class="tb-wrap tb-cover__inner">
+        <div>
+          <nav aria-label="You are here" class="tb-crumbs" data-pagefind-ignore>
+            <a href="/">{TEXT.nav.home}</a>
+            <span aria-hidden="true">/</span>
+            <a href={`/#area-${data.area}`}>{AREA_TEXT[data.area].title}</a>
+          </nav>
+          <h1 class="tb-cover__title">{data.title}</h1>
+          <p class="tb-cover__package">{packageName}</p>
+          <p class="tb-cover__lede">{data.description}</p>
+          <div class="tb-install" data-pagefind-ignore>
+            <code>{install}</code>
+            <button
+              type="button"
+              class="tb-copy"
+              data-copy={install}
+              data-copied={TEXT.library.copied}
+              aria-label={`${TEXT.library.copy}: ${install}`}
+            >
+              {TEXT.library.copy}
+            </button>
+          </div>
+          <ul class="tb-facts" data-pagefind-ignore>
+            <li>{TEXT.library.version} <strong>{data.version}</strong>, {TEXT.library.released} {released}</li>
+            <li>{TEXT.library.php} <strong>{data.php}</strong></li>
+            <li>{TEXT.library.license} <strong>{data.license}</strong></li>
+            <li>{TEXT.library.downloads} <strong>{downloads}</strong> {TEXT.library.perMonth}</li>
+            <li>
+              <a href={repositoryUrl(data.name)} target="_blank" rel="noopener noreferrer">
+                {TEXT.library.source} <Icon name="external" size={12} />
+              </a>
+            </li>
+            <li>
+              <a href={packagistUrl(data.name)} target="_blank" rel="noopener noreferrer">
+                {TEXT.library.packagist} <Icon name="external" size={12} />
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <aside class="tb-relations" aria-label="Dependencies" data-pagefind-ignore>
+          {
+            relations.map((relation) => (
+              <section>
+                <h2>{relation.label}</h2>
+                {relation.names.length > 0 ? (
+                  <ul>
+                    {relation.names.map((name) => (
+                      <li>
+                        <a href={`/${name}/`} class="tb-chip">
+                          {name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>{relation.none}</p>
+                )}
+              </section>
+            ))
+          }
+        </aside>
+      </div>
+    </div>
+
+    <div class="tb-wrap tb-docs">
+      <details class="tb-toc" open data-toc data-pagefind-ignore>
+        <summary>{TEXT.library.onThisPage}</summary>
+        <nav aria-label={TEXT.library.onThisPage}>
+          <ol>
+            {
+              index.map((heading) => (
+                <li class:list={[heading.depth === 3 && 'is-sub']}>
+                  <a href={`#${heading.slug}`} data-toc-link={heading.slug}>
+                    {heading.text}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+        </nav>
+      </details>
+      <article class="tb-article" data-pagefind-body>
+        <div class="tb-md">
+          <Content />
+        </div>
+      </article>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import '../scripts/copy.ts'
+  import '../scripts/toc.ts'
+</script>

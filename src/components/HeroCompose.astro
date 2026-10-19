@@ -1,0 +1,254 @@
+---
+/**
+ * The picture beside the words of the home: an application built one block at a time, from two of its files.
+ * The domain file imports the domain libraries and the endpoint that creates an order imports the
+ * infrastructure ones, the way a hexagonal application keeps them apart. As each `use TinyBlocks\…` line is
+ * typed, the brick of that library drops onto the baseplate of the application, at the domain corner or at
+ * the infrastructure corner. Each file imports its libraries from the foundation up, so a brick only ever
+ * rests on libraries that do not depend on it. The imports are real classes, and every brick is as long as
+ * its name needs.
+ *
+ * The picture is drawn complete and animated by the stylesheet, with the timing worked out here. A small
+ * script only starts it over once it is built, so it keeps playing. Decorative and hidden from assistive
+ * tech. With no script it plays once, and with reduced motion it stands complete.
+ */
+
+type Zone = 'infrastructure' | 'domain'
+
+interface Import {
+  readonly library: string
+  readonly path: string
+}
+
+interface File {
+  readonly name: string
+  readonly namespace: string
+  readonly zone: Zone
+  readonly imports: readonly Import[]
+}
+
+const FILES: readonly File[] = [
+  {
+    name: 'Order.php',
+    namespace: 'Store\\Application\\Domain\\Models\\Order',
+    zone: 'domain',
+    imports: [
+      { library: 'value-object', path: 'TinyBlocks\\Vo\\ValueObject' },
+      { library: 'collection', path: 'TinyBlocks\\Collection\\Collection' },
+      { library: 'time', path: 'TinyBlocks\\Time\\Instant' },
+      { library: 'building-blocks', path: 'TinyBlocks\\BuildingBlocks\\Event\\DomainEvent' },
+    ],
+  },
+  {
+    name: 'CreateOrder.php',
+    namespace: 'Store\\Driver\\Http\\Endpoints\\Order',
+    zone: 'infrastructure',
+    imports: [
+      { library: 'logger', path: 'TinyBlocks\\Logger\\StreamLogger' },
+      { library: 'http', path: 'TinyBlocks\\Http\\Server\\Response' },
+      { library: 'outbox', path: 'TinyBlocks\\Outbox\\DoctrineOutboxRepository' },
+    ],
+  },
+]
+const IMPORTS = FILES.flatMap((file) => file.imports.map((item) => ({ ...item, zone: file.zone })))
+
+/** The milliseconds a character takes to be typed, and the pause between a brick landing and the next line. */
+const TYPE = 22
+const BREATH = 380
+const START = 500
+const lines = IMPORTS.map((item) => `use ${item.path};`)
+const timeline = lines.reduce<{ start: number; land: number }[]>((steps, line, index) => {
+  const start = index === 0 ? START : (steps[index - 1]?.land ?? START) + BREATH
+  return [...steps, { start, land: start + line.length * TYPE + 80 }]
+}, [])
+
+const COS = Math.cos(Math.PI / 6)
+const SIN = Math.sin(Math.PI / 6)
+/** The length of one stud in the drawing, the height of a brick in studs, and the size of the plate. */
+const UNIT = 20
+const HEIGHT = 1.2
+const PLATE = { width: 10, depth: 10, height: 1.3 }
+/**
+ * Where each side of the application stands on the plate: the infrastructure at the front left corner and
+ * the domain at the back right one. The two corners sit at opposite ends of the picture, so no brick of one
+ * side ever hides a brick of the other.
+ */
+const ZONES: Readonly<Record<Zone, { readonly y: number; readonly anchor: 'start' | 'end' }>> = {
+  infrastructure: { y: 7.5, anchor: 'start' },
+  domain: { y: 0.5, anchor: 'end' },
+}
+/** The width a label takes in the drawing, per character, and the margin around it on its brick. */
+const CHARACTER = 7.2
+const MARGIN = 14
+
+type Point = readonly [number, number]
+
+const project = (x: number, y: number, z: number): Point => [(x - y) * UNIT * COS, (x + y) * UNIT * SIN - z * UNIT]
+
+interface Box {
+  readonly x: number
+  readonly y: number
+  readonly z: number
+  readonly width: number
+  readonly depth: number
+  readonly height: number
+}
+
+/** Answers the corners of the faces and the centers of the studs of a box. */
+function faces(box: Box) {
+  const { x, y, z, width, depth, height } = box
+  const top: Point[] = [
+    project(x, y, z + height),
+    project(x + width, y, z + height),
+    project(x + width, y + depth, z + height),
+    project(x, y + depth, z + height),
+  ]
+  const front: Point[] = [
+    project(x, y + depth, z),
+    project(x + width, y + depth, z),
+    project(x + width, y + depth, z + height),
+    project(x, y + depth, z + height),
+  ]
+  const side: Point[] = [
+    project(x + width, y, z),
+    project(x + width, y + depth, z),
+    project(x + width, y + depth, z + height),
+    project(x + width, y, z + height),
+  ]
+  const studs = Array.from({ length: width * depth }, (_, index) =>
+    project(x + (index % width) + 0.5, y + Math.floor(index / width) + 0.5, z + height),
+  )
+  return { top, front, side, studs }
+}
+
+/** Stacks the bricks of each zone in the order they land, each one shifted a stud from the one below. */
+const heights: Record<Zone, number> = { infrastructure: 0, domain: 0 }
+const placed = IMPORTS.map((item, index) => {
+  const width = Math.max(3, Math.ceil((item.library.length * CHARACTER + MARGIN) / UNIT))
+  const zone = ZONES[item.zone]
+  const layer = heights[item.zone]++
+  const shift = layer % 2 === 0 ? 0 : 1
+  const x = zone.anchor === 'start' ? shift : PLATE.width - width - shift
+  return { ...item, index, box: { x, y: zone.y, z: layer * HEIGHT, width, depth: 2, height: HEIGHT } }
+})
+const plateBox: Box = { x: 0, y: 0, z: -PLATE.height, width: PLATE.width, depth: PLATE.depth, height: PLATE.height }
+
+/** Fits the view around everything drawn, with room above the stacks. */
+const corners = [plateBox, ...placed.map((brick) => brick.box)].flatMap((box) => {
+  const shape = faces(box)
+  return [...shape.top, ...shape.front, ...shape.side]
+})
+const left = Math.min(...corners.map(([x]) => x)) - 6
+const right = Math.max(...corners.map(([x]) => x)) + 6
+const top = Math.min(...corners.map(([, y]) => y)) - 14
+const bottom = Math.max(...corners.map(([, y]) => y)) + 6
+const viewBox = `${left.toFixed(1)} ${top.toFixed(1)} ${(right - left).toFixed(1)} ${(bottom - top).toFixed(1)}`
+
+const polygon = (points: readonly Point[]) => points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
+const RADIUS_X = UNIT * 0.3 * COS * 1.15
+const RADIUS_Y = RADIUS_X * 0.58
+const RISE = UNIT * 0.2
+const studWall = ([cx, cy]: Point) =>
+  `M${(cx - RADIUS_X).toFixed(1)},${cy.toFixed(1)} v${-RISE} a${RADIUS_X.toFixed(1)},${RADIUS_Y.toFixed(1)} 0 0 0 ${(2 * RADIUS_X).toFixed(1)},0 v${RISE} a${RADIUS_X.toFixed(1)},${RADIUS_Y.toFixed(1)} 0 0 1 ${(-2 * RADIUS_X).toFixed(1)},0z`
+const studCap = ([cx, cy]: Point) => ({
+  cx: cx.toFixed(1),
+  cy: (cy - RISE).toFixed(1),
+  rx: RADIUS_X.toFixed(1),
+  ry: RADIUS_Y.toFixed(1),
+})
+/** Sets text on the front face of a box, slanted the way the face runs. */
+const onFront = (x: number, y: number, z: number, lift: number) => {
+  const [px, py] = project(x, y, z)
+  return `matrix(${COS.toFixed(4)},${SIN.toFixed(4)},0,1,${px.toFixed(1)},${(py - lift).toFixed(1)})`
+}
+
+/** Sets text on the side face of a box, running from the front toward the back. */
+const onSide = (x: number, y: number, z: number, lift: number) => {
+  const [px, py] = project(x, y, z)
+  return `matrix(${COS.toFixed(4)},${(-SIN).toFixed(4)},0,1,${px.toFixed(1)},${(py - lift).toFixed(1)})`
+}
+
+const longest = Math.max(
+  ...lines.map((line) => line.length),
+  ...FILES.map((file) => `namespace ${file.namespace};`.length),
+)
+
+const plate = faces(plateBox)
+const bricks = placed
+  .map((brick) => ({ ...brick, shape: faces(brick.box), land: timeline[brick.index]?.land ?? 0 }))
+  .sort((a, b) => a.box.y - b.box.y || a.box.z - b.box.z)
+---
+
+<div class="tb-compose is-playing" aria-hidden="true" data-compose data-cycle={timeline.at(-1)?.land ?? 0}>
+  <div
+    class="tb-compose__editor"
+    style={`--switch:${(timeline[FILES[0]?.imports.length ?? 0]?.start ?? 0) - 250}ms;--longest:${longest}`}
+  >
+    <p class="tb-compose__tabs">
+      {FILES.map((file, index) => <span class:list={['tb-compose__tab', index === 0 ? 'is-first' : 'is-second']}>{file.name}</span>)}
+    </p>
+    <div class="tb-compose__panes">
+      {
+        FILES.map((file, fileIndex) => {
+          const first = IMPORTS.findIndex((item) => item.path === file.imports[0]?.path)
+          return (
+            <pre class:list={['tb-compose__pane', fileIndex === 0 ? 'is-first' : 'is-second']}><span class="k">&lt;?php</span>
+
+<span class="k">declare</span>(strict_types=<span class="n">1</span>);
+
+<span class="k">namespace</span> {file.namespace};
+
+<span class="tb-compose__uses">{file.imports.map((item, offset) => {
+  const index = first + offset
+  const step = timeline[index] ?? { start: 0, land: 0 }
+  const chars = (lines[index] ?? '').length
+  return (
+    <span class="tb-compose__use"><span class="tb-compose__line" style={`--chars:${chars};--start:${step.start}ms;--land:${step.land}ms`}><span class="k">use</span> <span class="tb-compose__path">{item.path};</span></span><span class="tb-compose__caret" style={`--chars:${chars};--start:${step.start}ms`}></span></span>
+  )
+})}</span></pre>
+          )
+        })
+      }
+    </div>
+  </div>
+  <svg class="tb-compose__lego" viewBox={viewBox}>
+    <g class="tb-lego tb-lego--plate">
+      <polygon points={polygon(plate.front)} class="tb-lego__front"></polygon>
+      <polygon points={polygon(plate.side)} class="tb-lego__side"></polygon>
+      <polygon points={polygon(plate.top)} class="tb-lego__top"></polygon>
+      {
+        plate.studs.map((stud) => (
+          <>
+            <path d={studWall(stud)} class="tb-lego__side" />
+            <ellipse {...studCap(stud)} class="tb-lego__stud" />
+          </>
+        ))
+      }
+      <text transform={onFront(0.4, PLATE.depth, -PLATE.height, 9)} class="tb-lego__plate-label">infrastructure</text>
+      <text transform={onSide(PLATE.width, 3.2, -PLATE.height, 9)} class="tb-lego__plate-label">domain</text>
+    </g>
+    <g class="tb-compose__bricks">
+      {
+        bricks.map((brick) => (
+          <g class="tb-lego tb-lego--brick" style={`--land:${brick.land}ms`}>
+            <polygon points={polygon(brick.shape.front)} class="tb-lego__front" />
+            <polygon points={polygon(brick.shape.side)} class="tb-lego__side" />
+            <polygon points={polygon(brick.shape.top)} class="tb-lego__top" />
+            {brick.shape.studs.map((stud) => (
+              <>
+                <path d={studWall(stud)} class="tb-lego__side" />
+                <ellipse {...studCap(stud)} class="tb-lego__stud" />
+              </>
+            ))}
+            <text
+              transform={onFront(brick.box.x + 0.45, brick.box.y + brick.box.depth, brick.box.z, 8)}
+              class="tb-lego__label"
+            >
+              {brick.library}
+            </text>
+          </g>
+        ))
+      }
+    </g>
+  </svg>
+</div>
