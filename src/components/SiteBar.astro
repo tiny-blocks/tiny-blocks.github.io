@@ -1,7 +1,7 @@
 ---
 /**
- * The bar on top of every page: the brand that leads home, the way to search, the organization on GitHub
- * and the theme control.
+ * The bar on top of every page: the brand that leads home, the way to search, the organization on GitHub and
+ * on Packagist, and the theme control.
  */
 import { SITE, TEXT } from '../content/site'
 import BrandMark from './BrandMark.astro'
@@ -28,6 +28,16 @@ import ThemeToggle from './ThemeToggle.astro'
           title={TEXT.nav.source}
         >
           <Icon name="github" size={18} />
+        </a>
+        <a
+          href={SITE.packagist}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tb-bar__tool"
+          aria-label={TEXT.nav.packagist}
+          title={TEXT.nav.packagist}
+        >
+          <Icon name="packagist" size={18} />
         </a>
       </div>
       <ThemeToggle theme={TEXT.theme} />

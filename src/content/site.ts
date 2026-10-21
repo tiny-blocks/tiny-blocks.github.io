@@ -7,6 +7,7 @@ import { ORGANIZATION } from './catalog'
 export const SITE = {
   name: 'Tiny Blocks',
   github: `https://github.com/${ORGANIZATION}`,
+  packagist: `https://packagist.org/packages/${ORGANIZATION}/`,
   meta: {
     title: 'Tiny Blocks · Small, focused PHP libraries',
     description:
@@ -26,6 +27,7 @@ export const TEXT = {
     libraries: 'Libraries',
     toTop: 'Back to top',
     source: 'Tiny Blocks on GitHub',
+    packagist: 'Tiny Blocks on Packagist',
   },
   home: {
     lede: 'Small, focused PHP libraries. Each one solves a single problem and can be adopted on its own, without pulling in the rest.',

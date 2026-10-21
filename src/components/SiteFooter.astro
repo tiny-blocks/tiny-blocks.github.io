@@ -9,11 +9,21 @@ import Icon from './Icon.astro'
       href={SITE.github}
       target="_blank"
       rel="noopener noreferrer"
-      class="tb-footer__github"
+      class="tb-footer__link"
       aria-label={TEXT.nav.source}
       title={TEXT.nav.source}
     >
       <Icon name="github" size={20} />
+    </a>
+    <a
+      href={SITE.packagist}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="tb-footer__link"
+      aria-label={TEXT.nav.packagist}
+      title={TEXT.nav.packagist}
+    >
+      <Icon name="packagist" size={20} />
     </a>
   </div>
 </footer>
