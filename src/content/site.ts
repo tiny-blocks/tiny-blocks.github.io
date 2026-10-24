@@ -53,8 +53,6 @@ export const TEXT = {
     released: 'released',
     php: 'PHP',
     license: 'License',
-    downloads: 'Downloads',
-    perMonth: 'a month',
     source: 'Source',
     packagist: 'Packagist',
     dependsOn: 'Stands on',
@@ -67,7 +65,6 @@ export const TEXT = {
     headline: (title: string) => `${title} for PHP`,
     /** What closes the description of a library page when the summary of the library is short. */
     pitch: 'A small, framework-agnostic PHP library from Tiny Blocks.',
-    usedByCount: (count: number) => (count === 1 ? 'used by 1 library' : `used by ${count} libraries`),
   },
   search: {
     title: 'Search the libraries',
@@ -82,3 +79,8 @@ export const TEXT = {
   },
   notFound: { title: 'Page not found', lede: 'This address does not exist or has moved.', back: 'Back to home' },
 } as const
+
+/** The day a release was published, from its ISO 8601 instant, as the site shows it: Oct 24, 2026. */
+export function releaseDate(instant: string): string {
+  return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(instant))
+}

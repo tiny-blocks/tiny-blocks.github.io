@@ -1,6 +1,6 @@
 /**
  * What the site reads about each library when it is built: the README and the `composer.json` from
- * its repository, and the latest release and the downloads from Packagist. A failed request fails the
+ * its repository, and the latest release from Packagist. A failed request fails the
  * build, so the site never publishes a library with half of its page missing.
  */
 import { ORGANIZATION, rawUrl } from './catalog'
@@ -15,11 +15,6 @@ export interface Release {
   readonly version: string
   /** When the version was published, as an ISO 8601 instant. */
   readonly time: string
-}
-
-export interface Downloads {
-  readonly total: number
-  readonly monthly: number
 }
 
 async function fetchOk(url: string): Promise<Response> {
@@ -48,11 +43,4 @@ export async function latestRelease(name: string): Promise<Release> {
     throw new Error(`Packagist lists no release of ${ORGANIZATION}/${name}.`)
   }
   return { version: release.version, time: release.time }
-}
-
-export async function downloads(name: string): Promise<Downloads> {
-  const body = (await (await fetchOk(`https://packagist.org/packages/${ORGANIZATION}/${name}/stats.json`)).json()) as {
-    downloads: Downloads
-  }
-  return { total: body.downloads.total, monthly: body.downloads.monthly }
 }

@@ -6,7 +6,7 @@
 import { render } from 'astro:content'
 import type { Library } from '../content'
 import { AREA_TEXT, packagistUrl, repositoryUrl } from '../content/catalog'
-import { MAIN_ID, TEXT } from '../content/site'
+import { MAIN_ID, releaseDate, TEXT } from '../content/site'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import Icon from './Icon.astro'
 
@@ -21,8 +21,7 @@ const packageName = `tiny-blocks/${data.name}`
 const install = `composer require ${packageName}`
 const origin = Astro.site ?? Astro.url.origin
 const url = new URL(`/${data.name}/`, origin).href
-const released = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(data.released))
-const downloads = new Intl.NumberFormat('en').format(data.downloads.monthly)
+const released = releaseDate(data.released)
 /** Search engines show about 160 characters, so a short summary is completed with what the library is. */
 const completed = `${data.description} ${TEXT.library.pitch}`
 const description = completed.length <= 165 ? completed : data.description
@@ -91,7 +90,6 @@ const relations = [
             <li>{TEXT.library.version} <strong>{data.version}</strong>, {TEXT.library.released} {released}</li>
             <li>{TEXT.library.php} <strong>{data.php}</strong></li>
             <li>{TEXT.library.license} <strong>{data.license}</strong></li>
-            <li>{TEXT.library.downloads} <strong>{downloads}</strong> {TEXT.library.perMonth}</li>
             <li>
               <a href={repositoryUrl(data.name)} target="_blank" rel="noopener noreferrer">
                 {TEXT.library.source} <Icon name="external" size={12} />
