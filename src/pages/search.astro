@@ -1,12 +1,13 @@
 ---
 /**
- * The search over the documentation of the libraries.
+ * The search over the documentation of the libraries, for a reader with no script to open the dialog of
+ * the bar and for a search shared by its address.
  *
  * The index is built by Pagefind after the site, from the library pages only. The page ships the form and
  * an empty list, and the script fetches the index the first time the reader types, so no other page pays
  * for it.
  */
-import Icon from '../components/Icon.astro'
+import SearchForm from '../components/SearchForm.astro'
 import { MAIN_ID, TEXT } from '../content/site'
 import BaseLayout from '../layouts/BaseLayout.astro'
 
@@ -28,36 +29,8 @@ const labels = TEXT.search
     </div>
 
     <div class="tb-wrap tb-main">
-      <form
-        class="tb-search"
-        role="search"
-        data-search
-        data-idle={labels.idle}
-        data-loading={labels.loading}
-        data-empty={labels.empty}
-        data-unavailable={labels.unavailable}
-        data-count={labels.count}
-      >
-        <label for="search-term" class="tb-block__title">{labels.label}</label>
-        <div class="tb-search__field">
-          <Icon name="search" size={20} />
-          <input
-            id="search-term"
-            name="q"
-            type="search"
-            inputmode="search"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder={labels.placeholder}
-          />
-        </div>
-        <p class="tb-search__status" role="status" aria-live="polite" data-search-status>{labels.idle}</p>
-      </form>
-      <ol class="tb-results" data-search-results></ol>
+      <SearchForm id="search-term" />
     </div>
   </main>
 </BaseLayout>
 
-<script>
-  import '../scripts/search.ts'
-</script>
