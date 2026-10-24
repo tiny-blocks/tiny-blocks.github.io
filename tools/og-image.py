@@ -1,11 +1,14 @@
-"""Draws the link-preview card of the site, `public/og-image.png`, at 1200 by 630.
+"""Draws the link-preview cards of the site at 1200 by 630: `public/og-image.png`, and one per library at
+`public/og/<name>.png`.
 
-The card carries the logo (`public/logo.png`, exported from `public/logo.svg`), the name and the promise of
-Tiny Blocks over a faint grid of dots, in the faces of the site. Run it through `make og-image`, which
-supplies Pillow in a container.
+The card of the site carries the logo (`public/logo.png`, exported from `public/logo.svg`), the name and the
+promise of Tiny Blocks over a faint grid of dots, in the faces of the site. The card of a library carries
+the logo and the name of its package instead. The libraries are the ones the catalog of the site lists, so
+adding one to the catalog asks for running it again. Run it through `make og-image`, which supplies Pillow
+in a container.
 """
 
-import sys
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -34,17 +37,53 @@ def studs(card: Image.Image) -> None:
     card.alpha_composite(layer)
 
 
-def main(output: str) -> None:
+def libraries() -> list[str]:
+    """The name of every library the catalog of the site lists, in its order."""
+    catalog = (ROOT / 'src' / 'content' / 'catalog.ts').read_text()
+    return re.findall(r"\{ name: '([\w-]+)', area:", catalog)
+
+
+def blank() -> tuple[Image.Image, ImageDraw.ImageDraw]:
+    """A card with the studs and the logo, ready to be written on."""
     card = Image.new('RGBA', (WIDTH, HEIGHT), PAGE)
     studs(card)
     logo = Image.open(ROOT / 'public' / 'logo.png').convert('RGBA').resize((170, 170), Image.LANCZOS)
     card.alpha_composite(logo, (64, 80))
-    draw = ImageDraw.Draw(card)
+    return card, ImageDraw.Draw(card)
+
+
+def fitted(text: str, family: str, weight: int, size: int, width: int) -> ImageFont.FreeTypeFont:
+    """The face at the given size, or smaller until the text fits the given width."""
+    face = font(family, weight, size)
+    while face.getlength(text) > width:
+        size -= 4
+        face = font(family, weight, size)
+    return face
+
+
+def site(output: Path) -> None:
+    card, draw = blank()
     draw.text((80, 280), 'Tiny Blocks', font=font('bricolage-grotesque', 700, 120), fill=INK)
     draw.text((84, 430), 'Small, focused PHP libraries.', font=font('ibm-plex-sans', 400, 40), fill=MUTED)
     draw.text((84, 520), 'tiny-blocks.github.io', font=font('jetbrains-mono', 500, 28), fill=ACCENT)
     card.convert('RGB').save(output, optimize=True)
 
 
+def library(name: str, output: Path) -> None:
+    card, draw = blank()
+    draw.text((84, 290), 'tiny-blocks/', font=font('jetbrains-mono', 500, 40), fill=MUTED)
+    draw.text((80, 340), name, font=fitted(name, 'bricolage-grotesque', 700, 120, WIDTH - 160), fill=INK)
+    draw.text((84, 520), f'tiny-blocks.github.io/{name}/', font=font('jetbrains-mono', 500, 28), fill=ACCENT)
+    card.convert('RGB').save(output, optimize=True)
+
+
+def main() -> None:
+    site(ROOT / 'public' / 'og-image.png')
+    cards = ROOT / 'public' / 'og'
+    cards.mkdir(exist_ok=True)
+    for name in libraries():
+        library(name, cards / f'{name}.png')
+
+
 if __name__ == '__main__':
-    main(sys.argv[1] if len(sys.argv) > 1 else 'public/og-image.png')
+    main()

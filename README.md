@@ -83,7 +83,8 @@ To serve the built site, search included, as it is published, run:
 make preview
 ```
 
-To draw the link-preview card into `public/og-image.png`, run:
+To draw the link-preview cards, `public/og-image.png` and one per library in `public/og/`, run the command
+below. Run it again after adding a library to the catalog:
 
 ```bash
 make og-image

@@ -67,7 +67,7 @@ preview: ## @setup Serve the built site, search included, on the development por
 	@echo "Built site at $(SITE_URL)"
 
 .PHONY: og-image
-og-image: ## @setup Draw the link-preview card into public/og-image.png
+og-image: ## @setup Draw the link-preview cards into public/og-image.png and public/og/
 	@docker run --rm -u $(HOST_USER) -e HOME=/tmp -v $(CURDIR):/app -w /app python:3.12-slim \
 		sh -c "pip install --quiet --no-cache-dir --user pillow==11.3.0 && python tools/og-image.py"
 

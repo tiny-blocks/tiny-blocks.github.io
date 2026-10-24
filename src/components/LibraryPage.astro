@@ -38,6 +38,8 @@ const relations = [
   description={description}
   path={`/${data.name}/`}
   kind="article"
+  image={{ path: `/og/${data.name}.png`, alt: packageName }}
+  markdown={`/${data.name}.md`}
   structuredData={{
     '@graph': [
       {
