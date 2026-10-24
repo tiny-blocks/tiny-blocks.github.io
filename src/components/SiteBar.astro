@@ -1,11 +1,13 @@
 ---
 /**
- * The bar on top of every page: the brand that leads home, the way to search, the organization on GitHub and
- * on Packagist, and the theme control.
+ * The bar on top of every page: the brand that leads home, the search, which opens as a dialog over the page
+ * and is a link to the search page where no script runs, the organization on GitHub and on Packagist, and
+ * the theme control.
  */
 import { SITE, TEXT } from '../content/site'
 import BrandMark from './BrandMark.astro'
 import Icon from './Icon.astro'
+import SearchForm from './SearchForm.astro'
 import ThemeToggle from './ThemeToggle.astro'
 ---
 
@@ -16,8 +18,17 @@ import ThemeToggle from './ThemeToggle.astro'
     </a>
     <div class="tb-bar__controls">
       <div class="tb-bar__tools">
-        <a href="/search/" class="tb-bar__tool" aria-label={TEXT.nav.search} title={TEXT.nav.search}>
+        <a
+          href="/search/"
+          class="tb-bar__tool tb-bar__tool--search"
+          aria-label={TEXT.nav.search}
+          title={TEXT.nav.search}
+          aria-haspopup="dialog"
+          data-search-open
+        >
           <Icon name="search" size={18} />
+          <span aria-hidden="true">{TEXT.nav.search}</span>
+          <kbd aria-hidden="true">{TEXT.search.shortcut}</kbd>
         </a>
         <a
           href={SITE.github}
@@ -44,3 +55,15 @@ import ThemeToggle from './ThemeToggle.astro'
     </div>
   </div>
 </header>
+
+<dialog class="tb-dialog" aria-label={TEXT.search.title} closedby="any" data-search-dialog>
+  <div class="tb-dialog__head">
+    <p class="tb-dialog__title">{TEXT.search.title}</p>
+    <form method="dialog">
+      <button type="submit" class="tb-bar__tool" aria-label={TEXT.search.close} title={TEXT.search.close}>
+        <span aria-hidden="true">✕</span>
+      </button>
+    </form>
+  </div>
+  <SearchForm id="search-dialog-term" autofocus />
+</dialog>

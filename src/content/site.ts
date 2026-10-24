@@ -74,6 +74,9 @@ export const TEXT = {
     lede: 'Look up a class, a method, a pattern or a problem to solve.',
     label: 'Search term',
     placeholder: 'E.g. Collection, Instant, correlation id',
+    close: 'Close the search',
+    /** The keys that open the search from any page, shown beside the control of the bar. */
+    shortcut: 'Ctrl K',
     idle: 'Type at least two letters.',
     loading: 'Searching...',
     empty: 'Nothing found. Try another word.',
