@@ -19,14 +19,27 @@ interface Props {
   noindex?: boolean
   /** The schema.org description of the page, published as JSON-LD for search engines. */
   structuredData?: Record<string, unknown>
+  /** The link-preview card of the page from the root, and what it shows. The card of the site otherwise. */
+  image?: { path: string; alt: string }
+  /** The address from the root of the same page as plain Markdown, for language models and agents. */
+  markdown?: string
 }
-const { title, description, path, kind = 'website', noindex = false, structuredData } = Astro.props
+const {
+  title,
+  description,
+  path,
+  kind = 'website',
+  noindex = false,
+  structuredData,
+  image = { path: '/og-image.png', alt: SITE.name },
+  markdown,
+} = Astro.props
 const documentTitle = title ? `${title} · ${SITE.name}` : SITE.meta.title
 const documentDescription = description ?? SITE.meta.description
 
 const origin = Astro.site ?? Astro.url.origin
 const canonical = path === null ? null : new URL(path, origin).href
-const ogImage = new URL('/og-image.png', origin).href
+const ogImage = new URL(image.path, origin).href
 /** Escapes `<` so nothing in the data can close the script element it is published in. */
 const jsonLd = structuredData
   ? JSON.stringify({ '@context': 'https://schema.org', ...structuredData }).replace(/</g, '\\u003c')
@@ -63,11 +76,12 @@ const jsonLd = structuredData
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={SITE.name} />
+    <meta property="og:image:alt" content={image.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
     <link rel="sitemap" href="/sitemap.xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="Tiny Blocks for language models" />
+    {markdown ? <link rel="alternate" type="text/markdown" href={markdown} /> : null}
     {jsonLd ? <script type="application/ld+json" set:html={jsonLd} /> : null}
   </head>
   <body>
