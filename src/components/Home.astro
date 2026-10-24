@@ -5,7 +5,7 @@
  */
 import { libraries as allLibraries } from '../content'
 import { AREA_TEXT, AREAS, repositoryUrl } from '../content/catalog'
-import { MAIN_ID, SITE, TEXT } from '../content/site'
+import { MAIN_ID, releaseDate, SITE, TEXT } from '../content/site'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import Icon from './Icon.astro'
 import HeroCompose from './HeroCompose.astro'
@@ -103,9 +103,9 @@ const origin = Astro.site ?? Astro.url.origin
                       <span class="tb-card__summary">{library.data.description}</span>
                       <span class="tb-card__foot">
                         <span class="tb-chip">{library.data.version}</span>
-                        {library.data.usedBy.length > 0 && (
-                          <span class="tb-chip">{TEXT.library.usedByCount(library.data.usedBy.length)}</span>
-                        )}
+                        <time class="tb-chip" datetime={library.data.released}>
+                          {releaseDate(library.data.released)}
+                        </time>
                       </span>
                     </a>
                   </li>

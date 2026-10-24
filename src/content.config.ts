@@ -6,7 +6,7 @@ import { z } from 'astro/zod'
 import { AREAS, CATALOG } from './content/catalog'
 import { dependencyGraph } from './content/graph'
 import { documentation } from './content/readme'
-import { composerFile, downloads, latestRelease, readme } from './content/sources'
+import { composerFile, latestRelease, readme } from './content/sources'
 
 const libraries = defineCollection({
   loader: {
@@ -15,19 +15,18 @@ const libraries = defineCollection({
       const names = new Set(CATALOG.map((entry) => entry.name))
       const sources = await Promise.all(
         CATALOG.map(async (entry) => {
-          const [text, composer, release, stats] = await Promise.all([
+          const [text, composer, release] = await Promise.all([
             readme(entry.name),
             composerFile(entry.name),
             latestRelease(entry.name),
-            downloads(entry.name),
           ])
-          return { entry, text, composer, release, stats }
+          return { entry, text, composer, release }
         }),
       )
       const graph = dependencyGraph(new Map(sources.map((source) => [source.entry.name, source.composer])))
 
       store.clear()
-      for (const [index, { entry, text, composer, release, stats }] of sources.entries()) {
+      for (const [index, { entry, text, composer, release }] of sources.entries()) {
         const node = graph[index]
         if (node === undefined) {
           throw new Error(`No node of the graph for ${entry.name}.`)
@@ -45,7 +44,6 @@ const libraries = defineCollection({
             license: [composer.license ?? 'MIT'].flat().join(', '),
             version: release.version,
             released: release.time,
-            downloads: stats,
             dependsOn: node.dependsOn,
             usedBy: node.usedBy,
             testedWith: node.testedWith,
@@ -69,7 +67,6 @@ const libraries = defineCollection({
     license: z.string(),
     version: z.string(),
     released: z.string(),
-    downloads: z.object({ total: z.number(), monthly: z.number() }),
     dependsOn: z.array(z.string()),
     usedBy: z.array(z.string()),
     testedWith: z.array(z.string()),
