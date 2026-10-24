@@ -79,6 +79,8 @@ const jsonLd = structuredData
     <meta property="og:image:alt" content={image.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
+    {/* Proves to Google Search Console that the site is ours. Removing it loses the verification. */}
+    <meta name="google-site-verification" content="03NLy1Dxn_HS7c6jW_j9RBoZWjHsga-ipdeQoxqwfzY" />
     <link rel="sitemap" href="/sitemap.xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="Tiny Blocks for language models" />
     {markdown ? <link rel="alternate" type="text/markdown" href={markdown} /> : null}
